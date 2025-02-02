@@ -65,11 +65,12 @@ pub mod input_lib {
         }
     }
 
-    pub fn get_input_as_string<P: AsRef<Path>>(path: P, buf: &mut String, is_example: bool) -> std::io::Result<()> {
+    pub fn get_input_as_string<P: AsRef<Path>>(path: P, is_example: bool) -> String {
+        let mut buf = String::new();
         let mut input = get_input(path, is_example);
-        match input.read_to_string(buf) {
-            Ok(_) => { Ok(()) },
-            Err(error) => { Err(error) },
+        match input.read_to_string(&mut buf) {
+            Ok(_) => { buf },
+            Err(error) => { panic!("can't convert input to string: {error}") },
         }
     }
 

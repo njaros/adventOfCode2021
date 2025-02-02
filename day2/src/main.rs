@@ -2,8 +2,7 @@ use lib_aoc::input_lib::{get_input_as_string, get_part};
 
 fn main() -> std::io::Result<()> {
     let part = get_part();
-    let mut file_content = String::new();
-    let _ = get_input_as_string(file!(), &mut file_content, false);
+    let file_content = get_input_as_string(file!(), false);
     let mut depth = 0;
     let mut distance = 0;
     let mut aim = 0;
