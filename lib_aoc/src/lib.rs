@@ -6,37 +6,56 @@ pub fn add(left: u64, right: u64) -> u64 {
 /// Inputs are either a file to read, or the user terminal input.
 pub mod input_lib {
     use std::{fs::File, io::{stdin, stdout, Write}, path::Path};
-    use crate::math::min;
 
-    /// Wait for user input, then returns 2 if user types "2"
-    /// or 1 if user types anything else.
+    /// Wait for user input, then returns 2 if user input start with 2.
+    /// else returns 1.
     pub fn get_part() -> u32 {
         let mut input = String::new();
         print!("Type the part to execute : ");
         let _ = stdout().flush();
         match stdin().read_line(&mut input) {
             Ok(_) => {
-                match input.parse::<u32>() {
-                    Ok(n) => {
-                        return min(n, 2);
+                match input.starts_with('2') {
+                    true => {
+                        return 2;
                     }
-                    Err(_) => {
+                    false => {
                         return 1;
                     }
                 }
             }
             Err(_) => {
-                1
+                return 1
             }
         }
     }
 
-    pub fn get_input_from_file_path<P: AsRef<Path>>(path: P) -> File {
+    /// if the parent of the parent of the path contain
+    /// a file named "input", it return his File object.
+    /// If a parent is None or the file doesn't exists, it panics !
+    /// if is_example parameter is true, the file "input_example"
+    /// will be opened.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// let input = get_input(file!());
+    /// ```
+    pub fn get_input<P: AsRef<Path>>(path: P, is_example: bool) -> File {
+        let file = match is_example {
+            true => {"input_example"}
+            false => {"input"}
+        };
         match path.as_ref().parent() {
-            Some(folder) => {
-                match File::open(folder.join("input")) {
-                    Ok(file) => { return file }
-                    Err(error) => { panic!("Unable to read file: {}", error) }
+            Some(src_folder) => {
+                match src_folder.parent() {
+                    Some(day_folder) => {
+                        match File::open(day_folder.join(file)) {
+                            Ok(file) => { return file }
+                            Err(error) => { panic!("Unable to read file: {}", error) }
+                        }
+                    }
+                    None => { panic!("given path as no parent") }
                 }
             },
             None => { panic!("given path as no parent") }
