@@ -5,7 +5,7 @@ pub fn add(left: u64, right: u64) -> u64 {
 /// module containing all helpers about the runtime inputs.
 /// Inputs are either a file to read, or the user terminal input.
 pub mod input_lib {
-    use std::{fs::File, io::{stdin, stdout, Write}, path::Path};
+    use std::{fs::File, io::{stdin, stdout, Read, Write}, path::Path};
 
     /// Wait for user input, then returns 2 if user input start with 2.
     /// else returns 1.
@@ -39,7 +39,10 @@ pub mod input_lib {
     /// # Example
     /// 
     /// ```
-    /// let input = get_input(file!());
+    /// let mut input = get_input(file!(), true);
+    /// let mut buffer = String::new();
+    /// input.read_to_string(&mut buffer)?;
+    /// println!(buffer);
     /// ```
     pub fn get_input<P: AsRef<Path>>(path: P, is_example: bool) -> File {
         let file = match is_example {
@@ -59,6 +62,14 @@ pub mod input_lib {
                 }
             },
             None => { panic!("given path as no parent") }
+        }
+    }
+
+    pub fn get_input_as_string<P: AsRef<Path>>(path: P, buf: &mut String, is_example: bool) -> std::io::Result<()> {
+        let mut input = get_input(path, is_example);
+        match input.read_to_string(buf) {
+            Ok(_) => { Ok(()) },
+            Err(error) => { Err(error) },
         }
     }
 
