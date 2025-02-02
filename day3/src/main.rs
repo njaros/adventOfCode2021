@@ -1,3 +1,7 @@
+use lib_aoc::input_lib::get_input_as_string;
+
 fn main() {
-    println!("Hello, world!");
+    let content = get_input_as_string(file!(), true);
+    let lines = content.split_whitespace();
+    
 }
