@@ -6,3 +6,4 @@ members = [
   "lib_aoc"]
 
 [workspace.dependencies]
+lib_aoc = { path = "./lib_aoc"}

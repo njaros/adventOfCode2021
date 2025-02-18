@@ -1,8 +1,8 @@
-use std::{collections::LinkedList, io::prelude::*};
 use lib_aoc::input_lib;
+use std::{collections::LinkedList, io::prelude::*};
 
 fn compare_end_tail_lst(lst: &LinkedList<u32>) -> bool {
-    return lst.iter().take(3).sum::<u32>() < lst.iter().rev().take(3).sum::<u32>();
+    lst.iter().take(3).sum::<u32>() < lst.iter().rev().take(3).sum::<u32>()
 }
 
 fn main() -> std::io::Result<()> {
@@ -17,18 +17,12 @@ fn main() -> std::io::Result<()> {
             let mut previous = iter.next();
             while previous.is_some() {
                 let next = iter.next();
-                match next {
-                    Some(n) => {
-                        match previous {
-                            Some(p) => {
-                                if n.parse::<i32>().unwrap() > p.parse::<i32>().unwrap() {
-                                    res  = res + 1;
-                                }
-                            },
-                            None => {},
+                if let Some(n) = next {
+                    if let Some(p) = previous {
+                        if n.parse::<i32>().unwrap() > p.parse::<i32>().expect("unreachable") {
+                            res += 1;
                         }
-                    },
-                    None => {},
+                    }
                 }
                 previous = next;
             }
@@ -38,23 +32,21 @@ fn main() -> std::io::Result<()> {
             let mut val_read = iter.next();
             while val_read.is_some() {
                 if lst.len() == 4 {
-                    compare_end_tail_lst(&lst).then(|| {res += 1;});
+                    compare_end_tail_lst(&lst).then(|| {
+                        res += 1;
+                    });
                     lst.pop_front();
                 }
-                match val_read {
-                    Some(s) => {
-                        match s.parse::<u32>() {
-                            Ok(n) => {lst.push_back(n);},
-                            Err(_) => {},
-                        }
-                    },
-                    None => {},
+                if let Some(v) = val_read {
+                    lst.push_back(v.parse::<u32>().expect("unreachable"))
                 }
                 val_read = iter.next();
             }
-            compare_end_tail_lst(&lst).then(|| {res += 1;});
+            compare_end_tail_lst(&lst).then(|| {
+                res += 1;
+            });
         }
     }
-    println!("{}", res.to_string());
+    println!("{}", res);
     Ok(())
 }

@@ -10,23 +10,31 @@ fn main() -> std::io::Result<()> {
     for line in instructions.into_iter() {
         let mut args = line.split(" ");
         let dir = match args.next() {
-            Some(s) => {s},
-            None => {panic!("string expected")}
+            Some(s) => s,
+            None => {
+                panic!("string expected")
+            }
         };
         let dist = match args.next() {
-            Some(s) => {match s.parse::<u32>() {
-                Ok(n) => {n},
-                Err(_) => {panic!("expect a number as string")},
-            }},
-            None => {panic!("expected a second string")},
+            Some(s) => match s.parse::<u32>() {
+                Ok(n) => n,
+                Err(_) => {
+                    panic!("expect a number as string")
+                }
+            },
+            None => {
+                panic!("expected a second string")
+            }
         };
         match part {
             1 => {
                 match dir {
-                    "forward" => {distance += dist}
-                    "down" => {depth += dist}
-                    "up" => {depth -= dist}
-                    _ => {panic!("wrong input! Unexpected {dir} value.")}
+                    "forward" => distance += dist,
+                    "down" => depth += dist,
+                    "up" => depth -= dist,
+                    _ => {
+                        panic!("wrong input! Unexpected {dir} value.")
+                    }
                 };
             }
             _ => {
@@ -35,9 +43,11 @@ fn main() -> std::io::Result<()> {
                         distance += dist;
                         depth += aim * dist;
                     }
-                    "down" => {aim += dist}
-                    "up" => {aim -= dist}
-                    _ => {panic!("wrong input! Unexpected {dir} value.")}
+                    "down" => aim += dist,
+                    "up" => aim -= dist,
+                    _ => {
+                        panic!("wrong input! Unexpected {dir} value.")
+                    }
                 };
             }
         }

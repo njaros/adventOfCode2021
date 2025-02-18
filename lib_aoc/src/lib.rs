@@ -5,7 +5,11 @@ pub fn add(left: u64, right: u64) -> u64 {
 /// module containing all helpers about the runtime inputs.
 /// Inputs are either a file to read, or the user terminal input.
 pub mod input_lib {
-    use std::{fs::File, io::{stdin, stdout, Read, Write}, path::Path};
+    use std::{
+        fs::File,
+        io::{stdin, stdout, Read, Write},
+        path::Path,
+    };
 
     /// Wait for user input, then returns 2 if user input start with 2.
     /// else returns 1.
@@ -14,19 +18,11 @@ pub mod input_lib {
         print!("Type the part to execute : ");
         let _ = stdout().flush();
         match stdin().read_line(&mut input) {
-            Ok(_) => {
-                match input.starts_with('2') {
-                    true => {
-                        return 2;
-                    }
-                    false => {
-                        return 1;
-                    }
-                }
-            }
-            Err(_) => {
-                return 1
-            }
+            Ok(_) => match input.starts_with('2') {
+                true => 2,
+                false => 1,
+            },
+            Err(_) => 1,
         }
     }
 
@@ -35,9 +31,9 @@ pub mod input_lib {
     /// If a parent is None or the file doesn't exists, it panics !
     /// if is_example parameter is true, the file "input_example"
     /// will be opened.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// let mut input = get_input(file!(), true);
     /// let mut buffer = String::new();
@@ -46,22 +42,24 @@ pub mod input_lib {
     /// ```
     pub fn get_input<P: AsRef<Path>>(path: P, is_example: bool) -> File {
         let file = match is_example {
-            true => {"input_example"}
-            false => {"input"}
+            true => "input_example",
+            false => "input",
         };
         match path.as_ref().parent() {
-            Some(src_folder) => {
-                match src_folder.parent() {
-                    Some(day_folder) => {
-                        match File::open(day_folder.join(file)) {
-                            Ok(file) => { return file }
-                            Err(error) => { panic!("Unable to read file: {}", error) }
-                        }
+            Some(src_folder) => match src_folder.parent() {
+                Some(day_folder) => match File::open(day_folder.join(file)) {
+                    Ok(file) => file,
+                    Err(error) => {
+                        panic!("Unable to read file: {}", error)
                     }
-                    None => { panic!("given path as no parent") }
+                },
+                None => {
+                    panic!("given path as no parent")
                 }
             },
-            None => { panic!("given path as no parent") }
+            None => {
+                panic!("given path as no parent")
+            }
         }
     }
 
@@ -69,11 +67,12 @@ pub mod input_lib {
         let mut buf = String::new();
         let mut input = get_input(path, is_example);
         match input.read_to_string(&mut buf) {
-            Ok(_) => { buf },
-            Err(error) => { panic!("can't convert input to string: {error}") },
+            Ok(_) => buf,
+            Err(error) => {
+                panic!("can't convert input to string: {error}")
+            }
         }
     }
-
 }
 
 pub mod math {
@@ -81,17 +80,17 @@ pub mod math {
     /// Return the maximum between a Scalar A and a scalar B.
     pub fn max<T: std::cmp::PartialOrd>(a: T, b: T) -> T {
         if a >= b {
-            return a
+            return a;
         }
-        return b
+        b
     }
 
     /// Return the minimum between a Scalar A and a scalar B.
     pub fn min<T: std::cmp::PartialOrd>(a: T, b: T) -> T {
         if a <= b {
-            return a
+            return a;
         }
-        return b
+        b
     }
 }
 
