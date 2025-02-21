@@ -135,6 +135,12 @@ pub mod segment {
         fn _diagonal(&self) -> bool;
     }
     
+    trait PrivateUtils {
+        fn _create_vec(a: [i64; 2], b: [i64; 2]) -> [i64; 2];
+        fn _create_vec_3points(a: [i64; 2], b: [i64; 2], c: [i64; 2]) -> [i64; 2];
+        fn _colinear_vecs(v1: [i64; 2], v2: [i64; 2]) -> bool;
+    }
+
     pub trait Direction {
         fn start(&self) -> [i64; 2];
         fn start_x(&self) -> i64;
@@ -266,17 +272,6 @@ pub mod segment {
 
     }
 
-    impl InterDiagonal for Segment {
-        fn inter_points_d(&self, rhs: &Segment) -> BTreeSet<[i64; 2]> {
-            let mut points_set: BTreeSet<[i64; 2]> = BTreeSet::new();
-            points_set
-        }
-
-        fn inter_d(&self, rhs: &Segment) -> bool {
-            self.inter_points_d(rhs).len() != 0
-        }
-    }
-
     impl InterNoDiagonal for Segment {
 
         fn colinear_nd(&self, rhs: &Segment) -> bool {
@@ -287,7 +282,7 @@ pub mod segment {
 
         fn inter_points_nd(&self, rhs: &Segment) -> BTreeSet<[i64; 2]> {
             let mut points_set: BTreeSet<[i64; 2]> = BTreeSet::new();
-            if self.diagonal() || rhs.diagonal() { panic!("use only non diagonal segment for nd functions.") }
+            if self.any() || rhs.any() { panic!("not implemented for any segment (must be vertical, horizontal or diagonal).") }
             if self.fixed() || rhs.fixed() { return points_set }
             match self.colinear_nd(rhs) {
                 true => {
@@ -302,12 +297,15 @@ pub mod segment {
                         b_x1 = math::min(rhs.start_x(), rhs.end_x());
                         b_x2 = math::max(rhs.start_x(), rhs.end_x());
                     }
-                    else {
+                    else if self.vertical() {
                         if self.start_x() != rhs.start_x() { return points_set }
                         a_x1 = math::min(self.start_y(), self.end_y());
                         a_x2 = math::max(self.start_y(), self.end_y());
                         b_x1 = math::min(rhs.start_y(), rhs.end_y());
                         b_x2 = math::max(rhs.start_y(), rhs.end_y());
+                    }
+                    else {
+                        
                     }
                     if !(a_x1 > b_x2) && !(a_x2 < b_x1) {
                         if a_x1 >= b_x1 {
