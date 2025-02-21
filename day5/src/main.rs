@@ -1,27 +1,34 @@
-use lib_aoc::input_lib;
+use std::collections::BTreeSet;
 
-struct Segment {
-    value: [[u32; 2]; 2],
-}
+use lib_aoc::{input_lib, segment::{InterNoDiagonal, Segment}};
 
-impl From<&str> for Segment {
-    fn from(s: &str) -> Self {
-        let mut seg = Segment{ value: [[0; 2]; 2]};
-        s.split(" -> ").enumerate().for_each(|(idx1, pair)| {
-            pair.split(',').enumerate().for_each(|(idx2, n_str)| {
-                seg.value[idx1][idx2] = n_str.parse().unwrap();
-            });
-        });
-        seg
-    }
-}
-
-
+// A lot of useless implementations, that's to learn the language.
 
 fn main() {
-    let mut content = input_lib::get_input_as_string(file!(), true);
-    let segments: Vec<Segment> = Vec::new();
+    let content = input_lib::get_input_as_string(file!(), false);
+    let mut cross_set: BTreeSet<[i64; 2]> = BTreeSet::new();
+
+    // Collect all segments in a vector.
+    let mut segments: Vec<Segment> = Vec::new();
     content.split('\n').for_each(|line| {
-        let new_segment: Segment = line.into();
+        segments.push(line.into());
     });
+
+    // Only retain horizontal or vertical segments.
+    segments.retain(|s| s.value[0][0] == s.value[1][0] || s.value[0][1] == s.value[1][1]);
+
+    // debug part
+    for i in 0..segments.len() {
+        for j in i + 1 .. segments.len() {
+            for point in segments[i].inter_points_nd(&segments[j]) {
+                cross_set.insert(point);
+            }
+        }
+    }
+
+    // for point in &cross_set {
+    //     println!("{}, {}\n", point[0], point[1]);
+    // }
+
+    println!("Result is {}", cross_set.len())
 }
