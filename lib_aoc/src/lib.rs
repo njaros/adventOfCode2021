@@ -90,292 +90,165 @@ pub mod math {
     }
 }
 
-pub mod segment {
-    use std::collections::BTreeSet;
+/**
+ * Module to solve all my 2d geometry problems.
+ */
+pub mod segment_2d {
 
-    use crate::math;
+    // This variable may need to be higher, for now I don't know.
+    pub const ESPILON: f64 = f64::EPSILON;
 
-    pub enum SegDir {
-        HOR,
-        VER,
-        FIX,
-        DIA,
-        ANY,
+    #[derive(Debug, Clone, Copy)]
+    pub struct Point {
+        pub x: f64,
+        pub y: f64
     }
+
     pub struct Segment {
-        pub value: [[i64; 2]; 2],
-    }
-    
-    impl From<&str> for Segment {
-        fn from(s: &str) -> Self {
-            let mut seg = Segment { value: [[0; 2]; 2] };
-            s.split(" -> ").enumerate().for_each(|(idx1, pair)| {
-                pair.split(',').enumerate().for_each(|(idx2, n_str)| {
-                    seg.value[idx1][idx2] = n_str.parse().unwrap();
-                });
-            });
-            seg
-        }
-    }
-    
-    impl std::fmt::Display for Segment {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(
-                f,
-                "({}, {}) - ({}, {})",
-                self.value[0][0], self.value[0][1], self.value[1][0], self.value[1][1]
-            )
-        }
+        pub p1: Point,
+        pub p2: Point,
+        pub a: f64,
+        pub b: f64
     }
 
-    trait PrivateDirection {
-        fn _fixed(&self) -> bool;
-        fn _vertical(&self) -> bool;
-        fn _horizontal(&self) -> bool;
-        fn _diagonal(&self) -> bool;
-    }
-    
-    trait PrivateUtils {
-        fn _create_vec(a: [i64; 2], b: [i64; 2]) -> [i64; 2];
-        fn _create_vec_3points(a: [i64; 2], b: [i64; 2], c: [i64; 2]) -> [i64; 2];
-        fn _colinear_vecs(v1: [i64; 2], v2: [i64; 2]) -> bool;
+    // Usefull vectorial tools
+
+    type Vector = Point;
+
+    pub fn do_vector(a: Point, b: Point) -> Vector {
+        Vector{x: b.x - a.x, y: b.y - a.y}
     }
 
-    pub trait Direction {
-        fn start(&self) -> [i64; 2];
-        fn start_x(&self) -> i64;
-        fn start_y(&self) -> i64;
-        fn end(&self) -> [i64; 2];
-        fn end_x(&self) -> i64;
-        fn end_y(&self) -> i64;
-        fn fixed(&self) -> bool;
-        fn vertical(&self) -> bool;
-        fn horizontal(&self) -> bool;
-        fn diagonal(&self) -> bool;
-        fn any(&self) -> bool;
-        fn get_dir(&self) -> SegDir;
-        fn get_vector(&self) -> [i64; 2];
+    pub fn dot_product(v1: Vector, v2: Vector) -> f64 {
+        v1.x * v2.y - v1.y * v2.x
     }
 
-    pub trait InterDiagonal {
-        fn inter_d(&self, rhs: &Segment) -> bool;
-        fn inter_points_d(&self, rhs: &Segment) -> BTreeSet<[i64; 2]>;
+    // Traits/Impl for Point
+
+    // Traits/Impl for Vector
+
+    impl std::ops::Add for Vector {
+
+        type Output = Self;
+
+        fn add(self, rhs: Self) -> Self::Output {
+            Vector{x: self.x + rhs.x, y: self.y + rhs.y}
+        }
     }
 
-    pub trait InterNoDiagonal {
-        // Apply for segment which is vertical or horizontal only.
-        fn colinear_nd(&self, rhs: &Segment) -> bool;
-        // Apply for segment which is vertical or horizontal only.
-        fn inter_nd(&self, rhs: &Segment) -> bool;
-        // Apply for segment which is vertical or horizontal only.
-        fn inter_points_nd(&self, rhs: &Segment) -> BTreeSet<[i64; 2]>;
-    }
-
-    impl PrivateDirection for Segment {
-            
-        fn _fixed(&self) -> bool {
-            self.start() == self.end()
-        }
-    
-        fn _vertical(&self) -> bool {
-            self.start()[0] == self.end()[0]
-        }
-    
-        fn _horizontal(&self) -> bool {
-            self.start()[1] == self.end()[1]
-        }
-
-        fn _diagonal(&self) -> bool {
-            self.end_x() - self.start_x() == self.end_y() - self.start_y()
+    impl std::ops::AddAssign for Vector {
+        fn add_assign(&mut self, rhs: Self) {
+            self.x += rhs.x;
+            self.y += rhs.y;
         }
     }
-    
-    impl Direction for Segment {
-        fn start(&self) -> [i64; 2] {
-            self.value[0]
+
+    impl std::ops::Sub for Vector {
+
+        type Output = Self;
+
+        fn sub(self, rhs: Self) -> Self::Output {
+            Vector{x: self.x - rhs.x, y: self.y - rhs.y}
+        }
+    }
+
+    impl std::ops::SubAssign for Vector {
+        fn sub_assign(&mut self, rhs: Self) {
+            self.x -= rhs.x;
+            self.y -= rhs.y;
+        }
+    }
+
+    impl std::ops::Mul<f64> for Vector {
+
+        type Output = Self;
+
+        fn mul(self, rhs: f64) -> Self::Output {
+            Vector{x: self.x * rhs, y: self.y * rhs}
+        }
+    }
+
+    impl std::ops::MulAssign<f64> for Vector {
+        fn mul_assign(&mut self, rhs: f64) {
+            self.x *= rhs;
+            self.y *= rhs;
+        }
+    }
+
+    impl std::ops::Div<f64> for Vector {
+
+        type Output = Self;
+
+        fn div(self, rhs: f64) -> Self::Output {
+            Vector{x: self.x / rhs, y: self.y / rhs}
+        }
+    }
+
+    impl std::ops::DivAssign<f64> for Vector {
+        fn div_assign(&mut self, rhs: f64) {
+            self.x *= rhs;
+            self.y *= rhs;
+        }
+    }
+
+    impl std::cmp::PartialEq for Vector {
+        fn eq(&self, other: &Self) -> bool {
+            self.x == other.x && self.y == other.y
         }
 
-        fn start_x(&self) -> i64 {
-            self.start()[0]
+        fn ne(&self, other: &Self) -> bool {
+            !(self == other)
         }
+    }
 
-        fn start_y(&self) -> i64 {
-            self.start()[1]
-        }
-    
-        fn end(&self) -> [i64; 2] {
-            self.value[1]
-        }
+    // Traits/impl for Segment
 
-        fn end_x(&self) -> i64 {
-            self.end()[0]
-        }
+    trait LineDir {
 
-        fn end_y(&self) -> i64 {
-            self.end()[1]
-        }
-    
-        fn get_dir(&self) -> SegDir {
-            if self._fixed() {
-                return SegDir::FIX;
-            }
-            if self._vertical() {
-                return SegDir::VER;
-            }
-            if self._horizontal() {
-                return SegDir::HOR;
-            }
-            if self._diagonal() {
-                return SegDir::DIA;
-            }
-            SegDir::ANY
-        }
-    
-        fn fixed(&self) -> bool {
-            match self.get_dir() {
-                SegDir::FIX => true,
-                _ => false,
-            }
-        }
-    
-        fn vertical(&self) -> bool {
-            match self.get_dir() {
-                SegDir::VER => true,
-                _ => false,
-            }
-        }
-    
-        fn horizontal(&self) -> bool {
-            match self.get_dir() {
-                SegDir::HOR => true,
-                _ => false,
-            }
-        }
-    
-        fn diagonal(&self) -> bool {
-            match self.get_dir() {
-                SegDir::DIA => true,
-                _ => false,
-            }
-        }
-
-        fn any(&self) -> bool {
-            match self.get_dir() {
-                SegDir::ANY => true,
-                _ => false
-            }
-        }
-
-        fn get_vector(&self) -> [i64; 2] {
-            [self.end()[0] - self.start()[0], self.end()[1] - self.start()[1]]
-        }
+        fn get_line_coefficients(&self, p1: Point, p2: Point) -> (f64, f64);
+        fn get_leading_coefficient(&self, p1: Point, p2: Point) -> f64;
+        fn get_y_intercept(&self, a: f64, p: Point) -> f64;
 
     }
 
-    impl InterNoDiagonal for Segment {
+    pub trait Intercept {
 
-        fn colinear_nd(&self, rhs: &Segment) -> bool {
-            let v1 = self.get_vector();
-            let v2 = rhs.get_vector();
-            v1[0] * v2[1] - v1[1] * v2[0] == 0
-        }
-
-        fn inter_points_nd(&self, rhs: &Segment) -> BTreeSet<[i64; 2]> {
-            let mut points_set: BTreeSet<[i64; 2]> = BTreeSet::new();
-            if self.any() || rhs.any() { panic!("not implemented for any segment (must be vertical, horizontal or diagonal).") }
-            if self.fixed() || rhs.fixed() { return points_set }
-            match self.colinear_nd(rhs) {
-                true => {
-                    let a_x1;
-                    let a_x2;
-                    let b_x1;
-                    let b_x2;
-                    if self.horizontal() {
-                        if self.start_y() != rhs.start_y() { return points_set }
-                        a_x1 = math::min(self.start_x(), self.end_x());
-                        a_x2 = math::max(self.start_x(), self.end_x());
-                        b_x1 = math::min(rhs.start_x(), rhs.end_x());
-                        b_x2 = math::max(rhs.start_x(), rhs.end_x());
-                    }
-                    else if self.vertical() {
-                        if self.start_x() != rhs.start_x() { return points_set }
-                        a_x1 = math::min(self.start_y(), self.end_y());
-                        a_x2 = math::max(self.start_y(), self.end_y());
-                        b_x1 = math::min(rhs.start_y(), rhs.end_y());
-                        b_x2 = math::max(rhs.start_y(), rhs.end_y());
-                    }
-                    else {
-                        
-                    }
-                    if !(a_x1 > b_x2) && !(a_x2 < b_x1) {
-                        if a_x1 >= b_x1 {
-                            for i in a_x1..(math::min(b_x2, a_x2) + 1) {
-                                if self.horizontal() {
-                                    points_set.insert([i, self.start_y()]);
-                                }
-                                else {
-                                    points_set.insert([self.start_x(), i]);
-                                }
-                            }
-                        }
-                        else {
-                            for i in b_x1..(math::min(b_x2, a_x2) + 1) {
-                                if self.horizontal() {
-                                    points_set.insert([i, self.start_y()]);
-                                }
-                                else {
-                                    points_set.insert([self.start_x(), i]);
-                                }
-                            }
-                        }
-                    }
-                    points_set
-                },
-                false => {
-                    let v_x;
-                    let h_y;
-                    let x1;
-                    let x2;
-                    let y1;
-                    let y2;
-                    if self.horizontal() {
-                        v_x = rhs.start_x();
-                        h_y = self.start_y();
-                        x1 = math::min(self.start_x(), self.end_x());
-                        x2 = math::max(self.start_x(), self.end_x());
-                        y1 = math::min(rhs.start_y(), rhs.end_y());
-                        y2 = math::max(rhs.start_y(), rhs.end_y());
-                    }
-                    else {
-                        v_x = self.start_x();
-                        h_y = rhs.start_y();
-                        x1 = math::min(rhs.start_x(), rhs.end_x());
-                        x2 = math::max(rhs.start_x(), rhs.end_x());
-                        y1 = math::min(self.start_y(), self.end_y());
-                        y2 = math::max(self.start_y(), self.end_y());
-                    }
-                    if v_x >= x1 && v_x <= x2 && h_y >= y1 && h_y <= y2 {
-                        points_set.insert([v_x, h_y]);
-                    }
-                    points_set
-                }
-            }
-        }
-
-        fn inter_nd(&self, rhs: &Segment) -> bool {
-            self.inter_points_nd(rhs).len() != 0
-        }
-
+        fn intercept_point(&self, other: &Segment) -> Option<Point>;
+        
     }
+
+    impl LineDir for Segment {
+
+        fn get_leading_coefficient(&self, p1: Point, p2: Point) -> f64 {
+            (p1.x - p2.x) / (p1.y - p2.y)
+        }
+
+        fn get_y_intercept(&self, a: f64, p: Point) -> f64 {
+            p.y - a * p.x
+        }
+
+        fn get_line_coefficients(&self, p1: Point, p2: Point) -> (f64, f64) {
+            let a = self.get_leading_coefficient(p1, p2);
+            (a, self.get_y_intercept(a, p1))
+        }
+    }
+
+    impl Segment {
+        pub fn new(&self, pt1: Point, pt2: Point) -> Self {
+            let (a_, b_) = self.get_line_coefficients(pt1, pt2);
+            Self {p1: pt1, p2: pt2, a: a_, b: b_}
+        }
+    }
+
 }
 
-pub fn add(a: i64, b: i64) -> i64 {
+pub fn add<T: std::ops::Add<Output = T>>(a: T, b: T) -> T {
     a + b
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::segment::{Direction, InterNoDiagonal, Segment};
+    use crate::segment_2d::Point;
 
     use super::*;
 
@@ -386,10 +259,11 @@ mod tests {
     }
 
     #[test]
-    fn segment_test() {
-        let s1: Segment = Segment { value: [[9, 4], [3, 4]] };
-        let s2: Segment = Segment { value: [[7, 0], [7, 4]] };
-        assert_eq!(s1.start(), [9, 4]);
-        assert_eq!(s1.inter_points_nd(&s2).iter().cloned().collect::<Vec<[i64; 2]>>(), vec![[7, 4]]);
+    fn add_point() {
+        let mut p = Point{x: 2., y: 3.2};
+        assert_eq!(Point{x: 2.1, y: -1.}, p + Point{x: 0.1, y: -4.2});
+        p += Point{x: 0.1, y: -4.2};
+        assert_eq!(Point{x: 2.1, y: -1.}, p)
     }
+
 }
