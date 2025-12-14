@@ -127,35 +127,37 @@ pub mod math {
 }
 
 /**
- * Module to solve all my 2d geometry problems.
+ * Tools for lines in usual vectorial spaces
  */
-pub mod segment_2d {
+pub mod lines {
 
     // This variable may need to be higher, for now I don't know.
     pub const ESPILON: f64 = f64::EPSILON;
 
+    pub type Point<Dim> = [Dim; 2];
+
     #[derive(Debug, Clone, Copy)]
-    pub struct Point {
+    pub struct Point2d {
         pub x: f64,
         pub y: f64
     }
 
-    pub struct Segment {
-        pub p1: Point,
-        pub p2: Point,
+    pub struct Segment2d {
+        pub p1: Point2d,
+        pub p2: Point2d,
         pub a: f64,
         pub b: f64
     }
 
     // Usefull vectorial tools
 
-    type Vector = Point;
+    type Vector2d = Point2d;
 
-    pub fn do_vector(a: Point, b: Point) -> Vector {
-        Vector{x: b.x - a.x, y: b.y - a.y}
+    pub fn do_vector(a: Point2d, b: Point2d) -> Vector2d {
+        Vector2d{x: b.x - a.x, y: b.y - a.y}
     }
 
-    pub fn dot_product(v1: Vector, v2: Vector) -> f64 {
+    pub fn dot_product(v1: Vector2d, v2: Vector2d) -> f64 {
         v1.x * v2.y - v1.y * v2.x
     }
 
@@ -163,71 +165,71 @@ pub mod segment_2d {
 
     // Traits/Impl for Vector
 
-    impl std::ops::Add for Vector {
+    impl std::ops::Add for Vector2d {
 
         type Output = Self;
 
         fn add(self, rhs: Self) -> Self::Output {
-            Vector{x: self.x + rhs.x, y: self.y + rhs.y}
+            Vector2d{x: self.x + rhs.x, y: self.y + rhs.y}
         }
     }
 
-    impl std::ops::AddAssign for Vector {
+    impl std::ops::AddAssign for Vector2d {
         fn add_assign(&mut self, rhs: Self) {
             self.x += rhs.x;
             self.y += rhs.y;
         }
     }
 
-    impl std::ops::Sub for Vector {
+    impl std::ops::Sub for Vector2d {
 
         type Output = Self;
 
         fn sub(self, rhs: Self) -> Self::Output {
-            Vector{x: self.x - rhs.x, y: self.y - rhs.y}
+            Vector2d{x: self.x - rhs.x, y: self.y - rhs.y}
         }
     }
 
-    impl std::ops::SubAssign for Vector {
+    impl std::ops::SubAssign for Vector2d {
         fn sub_assign(&mut self, rhs: Self) {
             self.x -= rhs.x;
             self.y -= rhs.y;
         }
     }
 
-    impl std::ops::Mul<f64> for Vector {
+    impl std::ops::Mul<f64> for Vector2d {
 
         type Output = Self;
 
         fn mul(self, rhs: f64) -> Self::Output {
-            Vector{x: self.x * rhs, y: self.y * rhs}
+            Vector2d{x: self.x * rhs, y: self.y * rhs}
         }
     }
 
-    impl std::ops::MulAssign<f64> for Vector {
+    impl std::ops::MulAssign<f64> for Vector2d {
         fn mul_assign(&mut self, rhs: f64) {
             self.x *= rhs;
             self.y *= rhs;
         }
     }
 
-    impl std::ops::Div<f64> for Vector {
+    impl std::ops::Div<f64> for Vector2d {
 
         type Output = Self;
 
         fn div(self, rhs: f64) -> Self::Output {
-            Vector{x: self.x / rhs, y: self.y / rhs}
+            Vector2d{x: self.x / rhs, y: self.y / rhs}
         }
     }
 
-    impl std::ops::DivAssign<f64> for Vector {
+    impl std::ops::DivAssign<f64> for Vector2d {
         fn div_assign(&mut self, rhs: f64) {
             self.x /= rhs;
             self.y /= rhs;
         }
     }
 
-    impl std::cmp::PartialEq for Vector {
+    impl std::cmp::PartialEq for Vector2d {
         fn eq(&self, other: &Self) -> bool {
             self.x == other.x && self.y == other.y
         }
@@ -239,38 +241,38 @@ pub mod segment_2d {
 
     // Traits/impl for Segment
 
-    trait LineDir {
+    trait LineDir<> {
 
-        fn get_line_coefficients(&self, p1: Point, p2: Point) -> (f64, f64);
-        fn get_leading_coefficient(&self, p1: Point, p2: Point) -> f64;
-        fn get_y_intercept(&self, a: f64, p: Point) -> f64;
+        fn get_line_coefficients(&self, p1: Point2d, p2: Point2d) -> (f64, f64);
+        fn get_leading_coefficient(&self, p1: Point2d, p2: Point2d) -> f64;
+        fn get_y_intercept(&self, a: f64, p: Point2d) -> f64;
 
     }
 
-    pub trait Intercept {
+    pub trait Intercept<L, P> {
 
-        fn intercept_point(&self, other: &Segment) -> Option<Point>;
+        fn intercept_point(&self, other: &L) -> Option<P>;
         
     }
 
-    impl LineDir for Segment {
+    impl LineDir for Segment2d {
 
-        fn get_leading_coefficient(&self, p1: Point, p2: Point) -> f64 {
+        fn get_leading_coefficient(&self, p1: Point2d, p2: Point2d) -> f64 {
             (p1.x - p2.x) / (p1.y - p2.y)
         }
 
-        fn get_y_intercept(&self, a: f64, p: Point) -> f64 {
+        fn get_y_intercept(&self, a: f64, p: Point2d) -> f64 {
             p.y - a * p.x
         }
 
-        fn get_line_coefficients(&self, p1: Point, p2: Point) -> (f64, f64) {
+        fn get_line_coefficients(&self, p1: Point2d, p2: Point2d) -> (f64, f64) {
             let a = self.get_leading_coefficient(p1, p2);
             (a, self.get_y_intercept(a, p1))
         }
     }
 
-    impl Segment {
-        pub fn new(&self, pt1: Point, pt2: Point) -> Self {
+    impl Segment2d {
+        pub fn new(&self, pt1: Point2d, pt2: Point2d) -> Self {
             let (a_, b_) = self.get_line_coefficients(pt1, pt2);
             Self {p1: pt1, p2: pt2, a: a_, b: b_}
         }
@@ -278,28 +280,16 @@ pub mod segment_2d {
 
 }
 
-pub fn add<T: std::ops::Add<Output = T>>(a: T, b: T) -> T {
-    a + b
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::segment_2d::Point;
-
-    use super::*;
+    use super::lines::Point2d;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-
-    #[test]
-    fn add_point() {
-        let mut p = Point{x: 2., y: 3.2};
-        assert_eq!(Point{x: 2.1, y: -1.}, p + Point{x: 0.1, y: -4.2});
-        p += Point{x: 0.1, y: -4.2};
-        assert_eq!(Point{x: 2.1, y: -1.}, p)
+    fn add_point2d() {
+        let mut p = Point2d{x: 2., y: 3.2};
+        assert_eq!(Point2d{x: 2.1, y: -1.}, p + Point2d{x: 0.1, y: -4.2});
+        p += Point2d{x: 0.1, y: -4.2};
+        assert_eq!(Point2d{x: 2.1, y: -1.}, p)
     }
 
 }
